@@ -43,7 +43,7 @@ if submit:
         st.warning("⚠️ Mohon lengkapi Mata Pelajaran, Fase / Kelas, dan Topik / Materi!")
     else:
         try:
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-flash-latest')
             
             prompt = f"""
             Bertindaklah sebagai ahli kurikulum pendidikan dan guru profesional. Buatlah Modul Ajar (RPP) yang mendalam (Deep Learning), memuat unsur Mindful, Meaningful, dan Joyful, serta terintegrasi teknologi (TPACK).
