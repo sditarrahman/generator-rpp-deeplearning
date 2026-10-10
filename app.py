@@ -106,6 +106,5 @@ if submit_button:
                         file_name=f"Modul_Ajar_{mapel}_{kelas}.docx",
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
-                )
             except Exception as e:
                 st.error(f"Terjadi kesalahan pada sistem AI: {e}")
