@@ -1,6 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
 import docx
+import re
 from io import BytesIO
 
 # Konfigurasi Tampilan Halaman Web
@@ -92,25 +93,111 @@ if submit:
                 - Rangkuman ringkas Bahan Ajar dan Media Pembelajaran. 
                 - KISI-KISI RUBRIK PENILAIAN yang berisi indikator konkret. 
                 - SEBAGAI SOLUSI KETIADAAN BUKU LKS, WAJIB BUATKAN 3 (TIGA) JENIS LEMBAR KERJA PESERTA DIDIK (LKPD) FULL DAN SIAP CETAK. Ketiga LKPD tersebut harus bervariasi:
-                  * LKPD 1: PEMAHAMAN KONSEP DASAR. Berisi soal-soal terstruktur untuk memastikan murid memahami teori dasar dari materi.
-                  * LKPD 2: SOAL HOTS (Higher Order Thinking Skills). Berisi studi kasus pemecahan masalah tingkat tinggi (menganalisis dan mengevaluasi).
-                  * LKPD 3: EKSPLORASI TERBUKA (Open-Ended) / PENALARAN KRITIS. Berisi pertanyaan esai pemantik di mana jawabannya membebaskan murid untuk berpendapat berdasarkan pemahaman, imajinasi, dan logika kritis mereka sendiri (tidak ada jawaban baku).
-                  Setiap LKPD harus memuat: Identitas (Nama), Tujuan, Petunjuk Pengerjaan, Narasi Masalah, dan Ruang/Tabel Isian yang siap dijawab oleh siswa.
-            
-            Gunakan gaya bahasa formal, akademis, inovatif, dan berpusat pada peserta didik sesuai standar regulasi terbaru. Gunakan format Markdown (bold, italic, list) yang sangat rapi agar saat dikonversi ke Microsoft Word hasilnya memukau.
+                  * LKPD 1: PEMAHAMAN KONSEP DASAR. Berisi soal-soal terstruktur.
+                  * LKPD 2: SOAL HOTS (Higher Order Thinking Skills). Berisi studi kasus pemecahan masalah tingkat tinggi.
+                  * LKPD 3: EKSPLORASI TERBUKA (Open-Ended) / PENALARAN KRITIS. Berisi pertanyaan esai pemantik.
+                  Setiap LKPD harus memuat: Identitas (Nama), Tujuan, Petunjuk, Narasi Masalah, dan Ruang/Tabel Isian yang siap dijawab.
+
+            Gunakan gaya bahasa formal, akademis, inovatif, dan berpusat pada peserta didik sesuai standar regulasi terbaru. Gunakan format Markdown (bold, italic, list) yang sangat rapi.
             """
             
             # Menampilkan animasi loading
-            with st.spinner("🤖 AI sedang merancang Modul Ajar dan 3 Jenis LKPD Anda. Mohon tunggu sekitar 15-25 detik..."):
+            with st.spinner("🤖 AI sedang merancang Modul Ajar dan LKPD Anda. Mohon tunggu sekitar 15-25 detik..."):
                 response = model.generate_content(prompt)
                 
             st.success("✅ Modul Ajar dan LKPD variatif berhasil dibuat!")
             st.markdown(response.text)
             
-            # --- PROSES MEMBUAT FILE WORD OTOMATIS ---
+            # --- PROSES MEMBUAT FILE WORD OTOMATIS (DENGAN PEMERAPIHAN TEKS & TABEL) ---
             doc = docx.Document()
-            for baris in response.text.split('\n'):
-                doc.add_paragraph(baris)
+            lines = response.text.split('\n')
+            
+            in_table = False
+            table_data = []
+            
+            # Fungsi untuk mendeteksi teks Tebal (Bold) dan Miring (Italic)
+            def format_text(paragraph, text):
+                parts = re.split(r'(\*\*.*?\*\*)', text)
+                for part in parts:
+                    if part.startswith('**') and part.endswith('**'):
+                        run = paragraph.add_run(part[2:-2])
+                        run.bold = True
+                    else:
+                        sub_parts = re.split(r'(\*[^\*]+\*)', part)
+                        for sub_part in sub_parts:
+                            if sub_part.startswith('*') and sub_part.endswith('*'):
+                                run = paragraph.add_run(sub_part[1:-1])
+                                run.italic = True
+                            else:
+                                paragraph.add_run(sub_part)
+
+            for line in lines:
+                line_strip = line.strip()
+                
+                # Mendeteksi Tabel (garis lurus | )
+                if line_strip.startswith('|') and line_strip.endswith('|'):
+                    in_table = True
+                    row = [cell.strip() for cell in line_strip.split('|')[1:-1]]
+                    # Abaikan garis putus-putus pembatas tabel seperti |---|---|
+                    if not all(c == '' or set(c).issubset({'-', ':', ' '}) for c in row):
+                        table_data.append(row)
+                    continue
+                else:
+                    # Jika tabel sudah selesai, render tabelnya ke Word
+                    if in_table and table_data:
+                        table = doc.add_table(rows=len(table_data), cols=len(table_data[0]))
+                        table.style = 'Table Grid' # Beri garis tabel yang rapi
+                        for i, row in enumerate(table_data):
+                            for j, cell_text in enumerate(row):
+                                if j < len(table.columns):
+                                    # Bersihkan simbol tebal/miring di dalam tabel agar rapi
+                                    clean_text = cell_text.replace('**', '').replace('*', '')
+                                    table.cell(i, j).text = clean_text
+                        table_data = []
+                        in_table = False
+                        doc.add_paragraph() # Beri sedikit jarak setelah tabel
+
+                # Abaikan baris kosong jika sedang tidak membuat tabel
+                if not line_strip:
+                    if not in_table:
+                        doc.add_paragraph()
+                    continue
+
+                # Mendeteksi Judul Besar (Heading #)
+                if line_strip.startswith('# '):
+                    doc.add_heading(line_strip[2:].replace('**', ''), level=1)
+                elif line_strip.startswith('## '):
+                    doc.add_heading(line_strip[3:].replace('**', ''), level=2)
+                elif line_strip.startswith('### '):
+                    doc.add_heading(line_strip[4:].replace('**', ''), level=3)
+                
+                # Mendeteksi Bullet Point (* atau -)
+                elif line_strip.startswith('- ') or line_strip.startswith('* '):
+                    p = doc.add_paragraph(style='List Bullet')
+                    format_text(p, line_strip[2:])
+                
+                # Mendeteksi List Angka (1. , 2. , 3.)
+                elif re.match(r'^\d+\.\s', line_strip):
+                    p = doc.add_paragraph(style='List Number')
+                    clean_line = re.sub(r'^\d+\.\s', '', line_strip)
+                    format_text(p, clean_line)
+                
+                # Teks biasa / Paragraf Normal
+                else:
+                    p = doc.add_paragraph()
+                    format_text(p, line_strip)
+                    
+            # Jika tabel ada di bagian paling akhir dokumen
+            if in_table and table_data:
+                table = doc.add_table(rows=len(table_data), cols=len(table_data[0]))
+                table.style = 'Table Grid'
+                for i, row in enumerate(table_data):
+                    for j, cell_text in enumerate(row):
+                        if j < len(table.columns):
+                            clean_text = cell_text.replace('**', '').replace('*', '')
+                            table.cell(i, j).text = clean_text
+
+            # --- SELESAI PROSES MEMBUAT WORD ---
             
             buffer = BytesIO()
             doc.save(buffer)
@@ -120,7 +207,7 @@ if submit:
             st.download_button(
                 label="📥 Download Modul Ajar + 3 LKPD (Format Word / .docx)",
                 data=buffer,
-                file_name=f"Modul_Ajar_Lengkap_{mapel}_{kelas}.docx",
+                file_name=f"Modul_Ajar_Rapi_{mapel}_{kelas}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
             
