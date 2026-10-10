@@ -45,7 +45,7 @@ if submit_button:
             try:
                 # Menghubungkan ke AI
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-pro')
+                model = genai.GenerativeModel('gemini-flash-latest')
                 
                 # Instruksi Rahasia (Prompt) untuk AI
                 prompt = f"""
