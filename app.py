@@ -88,30 +88,30 @@ if submit_button:
                 st.download_button
                 # (Kode di atasnya biarkan saja)
         
-        if submit: # Atau apapun nama variabel tombol submit Anda
-            try:
-                # Meminta AI membuat modul ajar
-                response = model.generate_content(prompt)
-                
-                # Menampilkan hasil teks di layar web
-                st.markdown(response.text)
-                
-                # --- PROSES MEMBUAT FILE WORD OTOMATIS ---
-                doc = docx.Document()
-                for baris in response.text.split('\n'):
+       if submit:
+        try:
+            # Meminta AI membuat modul ajar
+            response = model.generate_content(prompt)
+            
+            # Menampilkan hasil teks di layar web
+            st.markdown(response.text)
+            
+            # --- PROSES MEMBUAT FILE WORD OTOMATIS ---
+            doc = docx.Document()
+            for baris in response.text.split('\n'):
                 doc.add_paragraph(baris)
-                
-                buffer = BytesIO()
-                doc.save(buffer)
-                buffer.seek(0)
-                
-                # Menampilkan tombol Download Word
-                st.download_button(
+            
+            buffer = BytesIO()
+            doc.save(buffer)
+            buffer.seek(0)
+            
+            # Menampilkan tombol Download Word
+            st.download_button(
                 label="📥 Download Modul Ajar (Word / .docx)",
                 data=buffer,
-                file_name=f"Modul_Ajar.docx",
+                file_name="Modul_Ajar.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
-                
-                except Exception as e:
-                st.error(f"Terjadi kesalahan pada sistem AI: {e}")
+            )
+            
+        except Exception as e:
+            st.error(f"Terjadi kesalahan pada sistem AI: {e}")
