@@ -46,7 +46,7 @@ if submit:
             model = genai.GenerativeModel('gemini-flash-latest')
             
             prompt = f"""
-            Bertindaklah sebagai ahli kurikulum pendidikan dan guru profesional. Buatlah Modul Ajar (RPP) yang mendalam (Deep Learning), memuat unsur Mindful, Meaningful, dan Joyful, serta terintegrasi teknologi (TPACK).
+            Bertindaklah sebagai Pengawas Sekolah dan Ahli Kurikulum Merdeka tingkat mahir. Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) atau Modul Ajar yang sangat komprehensif, terstruktur, dan berstandar tinggi (skala Makro/Proyek).
 
             Berikut adalah data pembelajarannya:
             - Nama Penyusun: {nama_guru}
@@ -56,17 +56,37 @@ if submit:
             - Topik / Materi: {topik}
             - Alokasi Waktu: {durasi}
 
-            Berdasarkan data di atas, susunlah modul ajar yang mengacu pada regulasi terbaru dengan struktur wajib berikut:
-            1. INFORMASI UMUM: Berisi identitas dan data pembelajaran di atas.
-            2. CAPAIAN PEMBELAJARAN (CP) & TUJUAN PEMBELAJARAN (TP): Susun CP dan TP secara akurat berdasarkan regulasi kurikulum terbaru yang sesuai dengan materi dan fase tersebut.
-            3. INTEGRASI 8 PROFIL LULUSAN: Cantumkan dan deskripsikan bagaimana aktivitas ini memenuhi komponen dari 8 Profil Lulusan.
-            4. PRAKTIK PEDAGOGIS: Jelaskan secara spesifik pendekatan, strategi, atau praktik pedagogis mutakhir apa yang diterapkan dalam rancangan ini untuk mencapai tujuan.
-            5. PEMAHAMAN BERMAKNA & PERTANYAAN PEMANTIK: Buat pertanyaan yang menggugah nalar kritis siswa.
-            6. SKENARIO PEMBELAJARAN (DEEP LEARNING & TPACK):
-               - Pendahuluan (Sertakan unsur Mindful)
-               - Kegiatan Inti (Sertakan unsur Meaningful, Joyful, dan integrasi TPACK/Teknologi)
-               - Penutup (Refleksi dan kesimpulan)
-            7. ASESMEN/PENILAIAN: Sertakan instrumen atau rubrik penilaian yang relevan.
+            Berdasarkan data di atas, susunlah modul ajar dengan struktur detail dan wajib persis seperti kerangka berikut:
+
+            1. IDENTITAS MODUL: Sajikan dalam bentuk daftar yang rapi berdasarkan data di atas.
+            2. IDENTIFIKASI MURID:
+               - Pengetahuan Awal.
+               - Minat Belajar & Pertanyaan Pemantik.
+               - Latar Belakang & Kebutuhan Belajar: Uraikan pembagian berdasarkan gaya belajar Visual, Auditori, dan Kinestetik.
+            3. MATA PELAJARAN:
+               - Jenis Pengetahuan yang Akan Dicapai (Faktual, Konseptual, Prosedural).
+               - Relevansi dengan Kehidupan Nyata.
+               - Struktur Materi.
+            4. DIMENSI PROFIL LULUSAN: Cantumkan minimal 4 dimensi karakter yang relevan.
+            5. DESAIN PEMBELAJARAN:
+               - Capaian Pembelajaran (Sesuaikan dengan fase dan mapel).
+               - Lintas Disiplin Ilmu (Kaitkan dengan mapel lain).
+               - Pemahaman Bermakna.
+               - Tujuan Pembelajaran: WAJIB gunakan Taksonomi Bloom berurutan dari C1 (Mengingat/Mengidentifikasi) sampai C6 (Mengevaluasi/Mencipta).
+               - Indikator Ketercapaian Tujuan Pembelajaran (IKTP).
+            6. PRAKTIK PEDAGOGIS & LINGKUNGAN BELAJAR:
+               - Pendekatan (Deep Learning), Metode, dan Model Pembelajaran (misal: PjBL atau PBL).
+               - Lingkungan Belajar: Jelaskan desain Ruang Fisik (tata letak bangku, pojok belajar), Ruang Virtual, dan Budaya Belajar (Growth Mindset).
+               - Pemanfaatan Digital (TPACK).
+            7. PENGALAMAN BELAJAR (SKENARIO KEGIATAN):
+               - Susun skenario dengan sangat rinci (Kegiatan Awal, Inti berdasarkan Sintaks Model Pembelajaran, dan Penutup).
+               - ATURAN WAJIB: Di setiap akhir kalimat aktivitas guru/siswa, cantumkan tag/label Deep Learning persis seperti ini: [Tahap: (Sebutkan tahapnya misal: Memahami/Mengaplikasi/Merefleksi), Prinsip: Mindful / Meaningful / Joyful]. Pastikan ketiga prinsip tersebut terdistribusi dengan baik di sepanjang kegiatan.
+            8. ASESMEN PEMBELAJARAN: Jelaskan pelaksanaan asesmen Awal, Proses (Formatif), dan Akhir (Sumatif).
+            9. PENGAYAAN DAN REMEDIAL.
+            10. REFLEKSI PEMBELAJARAN: Susun daftar pertanyaan refleksi untuk Guru dan Murid.
+            11. LAMPIRAN: Berikan rangkuman ringkas untuk Bahan Ajar, Media Pembelajaran, Konsep Lembar Kerja Peserta Didik (LKPD), dan Kisi-kisi Rubrik Penilaian.
+            
+            Gunakan gaya bahasa formal, akademis, inovatif, dan berpusat pada peserta didik sesuai standar regulasi terbaru. Gunakan format Markdown (bold, italic, list) yang sangat rapi agar saat dikonversi ke Microsoft Word hasilnya memukau.
             """
             
             with st.spinner("🤖 AI sedang merancang Modul Ajar Anda. Mohon tunggu sekitar 10-20 detik..."):
