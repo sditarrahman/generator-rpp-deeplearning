@@ -38,7 +38,7 @@ if submit:
     else:
         try:
             # Menggunakan JSON Mode pada Gemini
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-flash-latest')
             
             prompt = f"""
             Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) PBL dan LKPD.
