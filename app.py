@@ -85,7 +85,7 @@ if submit_button:
                 st.markdown(response.text)
                 
                 # Tombol Download
-                st.download_button(
+                st.download_button
                  # --- PROSES MEMBUAT FILE WORD OTOMATIS ---
 # Membuat dokumen Word baru
 doc = docx.Document()
@@ -105,6 +105,6 @@ st.download_button(
     data=buffer,
     file_name=f"Modul_Ajar_{mapel}_{kelas}.docx",
     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-)
+
             except Exception as e:
                 st.error(f"Terjadi kesalahan pada sistem AI: {e}")
