@@ -49,25 +49,28 @@ if submit_button:
                 
                 # Instruksi Rahasia (Prompt) untuk AI
                 prompt = f"""
-                Bertindaklah sebagai desainer kurikulum dan ahli pedagogi tingkat lanjut.
-                Buatkan Modul Ajar / RPP lengkap berbasis Deep Learning (wajib memuat skenario yang Mindful, Meaningful, dan Joyful) serta terintegrasi TPACK (Technological Pedagogical Content Knowledge).
-                
-                Gunakan data berikut:
-                - Nama Penyusun: {nama_guru if nama_guru else 'Guru Kelas'}
-                - Satuan Pendidikan: {sekolah if sekolah else 'Sekolah Dasar'}
+                Bertindaklah sebagai ahli kurikulum pendidikan dan guru profesional. Buatlah Modul Ajar (RPP) yang mendalam (Deep Learning), memuat unsur Mindful, Meaningful, dan Joyful, serta terintegrasi teknologi (TPACK).
+                Berikut adalah data pembelajarannya:
+                - Nama Penyusun: {nama_guru}
+                - Satuan Pendidikan: {sekolah}
                 - Mata Pelajaran: {mapel}
                 - Fase / Kelas: {kelas}
-                - Topik Materi: {topik}
-                - Alokasi Waktu: {durasi if durasi else 'Menyesuaikan'}
+                - Topik / Materi: {topik}
+                - Alokasi Waktu: {durasi}
+
+                Berdasarkan data di atas, susunlah modul ajar yang mengacu pada regulasi terbaru dengan struktur wajib berikut:
                 
-                Struktur dokumen harus mencakup:
-                1. IDENTITAS PEMBELAJARAN
-                2. TUJUAN PEMBELAJARAN & PEMAHAMAN BERMAKNA
-                3. INTEGRASI TPACK & PEMANFAATAN DIGITAL
-                4. SKENARIO PENGALAMAN BELAJAR (Detailkan Kegiatan Awal, Inti, dan Penutup dengan tag [Mindful], [Meaningful], dan [Joyful] di setiap aktivitasnya secara otomatis).
-                5. PREDIKSI MISKONSEPSI & DIFERENSIASI
-                6. ASESMEN PEMBELAJARAN
-                
+                1. INFORMASI UMUM: Berisi identitas dan data pembelajaran di atas.
+                2. CAPAIAN PEMBELAJARAN (CP) & TUJUAN PEMBELAJARAN (TP): Susun CP dan TP secara akurat berdasarkan regulasi kurikulum terbaru yang sesuai dengan materi dan fase tersebut.
+                3. INTEGRASI 8 PROFIL LULUSAN: Cantumkan dan deskripsikan bagaimana aktivitas ini memenuhi komponen dari 8 Profil Lulusan.
+                4. PRAKTIK PEDAGOGIS: Jelaskan secara spesifik pendekatan, strategi, atau praktik pedagogis mutakhir apa yang diterapkan dalam rancangan ini untuk mencapai tujuan.
+                5. PEMAHAMAN BERMAKNA & PERTANYAAN PEMANTIK: Buat pertanyaan yang menggugah nalar kritis siswa.
+                6. SKENARIO PEMBELAJARAN (DEEP LEARNING & TPACK):
+                   - Pendahuluan (Sertakan unsur Mindful)
+                   - Kegiatan Inti (Sertakan unsur Meaningful, Joyful, dan integrasi TPACK/Teknologi)
+                   - Penutup (Refleksi dan kesimpulan)
+                7. ASESMEN/PENILAIAN: Sertakan instrumen atau rubrik penilaian yang relevan.
+                              
                 Tuliskan dalam format Markdown yang rapi, profesional, dan siap pakai.
                 """
                 
