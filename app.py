@@ -46,7 +46,8 @@ if submit:
             model = genai.GenerativeModel('gemini-flash-latest')
             
             prompt = f"""
-            Bertindaklah sebagai Pengawas Sekolah dan Ahli Kurikulum Merdeka tingkat mahir. Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) atau Modul Ajar yang sangat komprehensif, terstruktur, dan berstandar tinggi (skala Makro/Proyek).
+           prompt = f"""
+            Bertindaklah sebagai Pengawas Sekolah dan Ahli Kurikulum Merdeka tingkat mahir. Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) atau Modul Ajar yang komprehensif, terstruktur, dan berstandar tinggi.
 
             Berikut adalah data pembelajarannya:
             - Nama Penyusun: {nama_guru}
@@ -58,7 +59,7 @@ if submit:
 
             Berdasarkan data di atas, susunlah modul ajar dengan struktur detail dan wajib persis seperti kerangka berikut:
 
-            1. IDENTITAS MODUL: Sajikan dalam bentuk daftar yang rapi berdasarkan data di atas.
+            1. IDENTITAS MODUL: Sajikan dalam bentuk daftar yang rapi.
             2. IDENTIFIKASI MURID:
                - Pengetahuan Awal.
                - Minat Belajar & Pertanyaan Pemantik.
@@ -75,16 +76,17 @@ if submit:
                - Tujuan Pembelajaran: WAJIB gunakan Taksonomi Bloom berurutan dari C1 (Mengingat/Mengidentifikasi) sampai C6 (Mengevaluasi/Mencipta).
                - Indikator Ketercapaian Tujuan Pembelajaran (IKTP).
             6. PRAKTIK PEDAGOGIS & LINGKUNGAN BELAJAR:
-               - Pendekatan (Deep Learning), Metode, dan Model Pembelajaran (misal: PjBL atau PBL).
+               - Pendekatan (Deep Learning), Metode, dan Model Pembelajaran: WAJIB gunakan Problem-Based Learning (PBL).
                - Lingkungan Belajar: Jelaskan desain Ruang Fisik (tata letak bangku, pojok belajar), Ruang Virtual, dan Budaya Belajar (Growth Mindset).
                - Pemanfaatan Digital (TPACK).
             7. PENGALAMAN BELAJAR (SKENARIO KEGIATAN):
-               - Susun skenario dengan sangat rinci (Kegiatan Awal, Inti berdasarkan Sintaks Model Pembelajaran, dan Penutup).
-               - ATURAN WAJIB: Di setiap akhir kalimat aktivitas guru/siswa, cantumkan tag/label Deep Learning persis seperti ini: [Tahap: (Sebutkan tahapnya misal: Memahami/Mengaplikasi/Merefleksi), Prinsip: Mindful / Meaningful / Joyful]. Pastikan ketiga prinsip tersebut terdistribusi dengan baik di sepanjang kegiatan.
-            8. ASESMEN PEMBELAJARAN: Jelaskan pelaksanaan asesmen Awal, Proses (Formatif), dan Akhir (Sumatif).
+               - Susun skenario dengan sangat rinci (Kegiatan Awal, Inti, dan Penutup).
+               - Kegiatan Inti WAJIB memuat 5 Sintaks PBL secara berurutan: (1) Orientasi siswa pada masalah, (2) Mengorganisasikan siswa untuk belajar, (3) Membimbing penyelidikan individu/kelompok, (4) Mengembangkan dan menyajikan hasil karya/solusi, (5) Menganalisis dan mengevaluasi proses pemecahan masalah.
+               - ATURAN WAJIB: Di setiap akhir kalimat aktivitas guru/siswa, cantumkan tag/label Deep Learning persis seperti ini: [Tahap: (Sebutkan tahapnya), Prinsip: Mindful / Meaningful / Joyful]. Pastikan ketiga prinsip tersebut terdistribusi merata.
+            8. ASESMEN PEMBELAJARAN: Jelaskan pelaksanaan asesmen Awal, Proses (Formatif), dan Akhir (Sumatif). Lengkapi dengan indikator yang jelas, bukan sekadar template kosong.
             9. PENGAYAAN DAN REMEDIAL.
             10. REFLEKSI PEMBELAJARAN: Susun daftar pertanyaan refleksi untuk Guru dan Murid.
-            11. LAMPIRAN: Berikan rangkuman ringkas untuk Bahan Ajar, Media Pembelajaran, Konsep Lembar Kerja Peserta Didik (LKPD), dan Kisi-kisi Rubrik Penilaian.
+            11. LAMPIRAN: Berikan rangkuman ringkas untuk Bahan Ajar, Media Pembelajaran, Konsep Lembar Kerja Peserta Didik (LKPD), dan Kisi-kisi Rubrik Penilaian (harus berisi indikator konkret, jangan dibiarkan kosong).
             
             Gunakan gaya bahasa formal, akademis, inovatif, dan berpusat pada peserta didik sesuai standar regulasi terbaru. Gunakan format Markdown (bold, italic, list) yang sangat rapi agar saat dikonversi ke Microsoft Word hasilnya memukau.
             """
