@@ -1,215 +1,132 @@
 import streamlit as st
 import google.generativeai as genai
 import docx
+from docx.shared import Pt, RGBColor
 import re
 from io import BytesIO
 
 # Konfigurasi Tampilan Halaman Web
 st.set_page_config(page_title="Generator Modul Ajar Deep Learning", page_icon="📚", layout="centered")
 
-# Judul Aplikasi
 st.title("🤖 Web Generator Modul Ajar Otomatis")
-st.markdown("Aplikasi ini membantu guru menyusun rancangan pembelajaran mendalam (*Deep Learning*) yang memuat unsur **Mindful, Meaningful, dan Joyful** serta terintegrasi **TPACK**.")
+st.markdown("Aplikasi ini membantu guru menyusun rancangan pembelajaran mendalam (*Deep Learning*) terintegrasi LKPD Estetik.")
 
 # Mengambil API Key dari brankas rahasia Streamlit (Secrets)
 try:
     api_key = st.secrets["API_KEY"]
     genai.configure(api_key=api_key)
 except Exception as e:
-    st.error("⚠️ Sistem belum dikonfigurasi. Pemilik aplikasi harus memasukkan API_KEY di pengaturan rahasia (Secrets) Streamlit.")
+    st.error("⚠️ Sistem belum dikonfigurasi. Masukkan API_KEY di pengaturan Secrets.")
     st.stop()
 
-# Formulir Isian Guru
 with st.form("form_rpp"):
     st.subheader("📝 Masukkan Data Pembelajaran")
-    
     col1, col2 = st.columns(2)
     with col1:
-        nama_guru = st.text_input("Nama Penyusun", placeholder="Misal: Budi Santoso, S.Pd.")
+        nama_guru = st.text_input("Nama Penyusun", placeholder="Misal: Budi, S.Pd.")
         sekolah = st.text_input("Satuan Pendidikan", placeholder="Misal: SDN 1 Kediri")
         mapel = st.text_input("Mata Pelajaran *", placeholder="Misal: Matematika")
     with col2:
         kelas = st.text_input("Fase / Kelas *", placeholder="Misal: Fase C / Kelas 6")
         topik = st.text_input("Topik / Materi *", placeholder="Misal: Diagram Alir")
         durasi = st.text_input("Alokasi Waktu", placeholder="Misal: 2 x 35 Menit")
-        
-    st.markdown("*Kolom dengan tanda bintang (*) wajib diisi.*")
-    
-    # Tombol Submit
-    submit = st.form_submit_button("✨ Buat Modul Ajar Otomatis")
+    submit = st.form_submit_button("✨ Buat Modul Ajar & LKPD")
 
-# Logika Pemrosesan AI
 if submit:
-    # Cek kelengkapan data wajib
     if not mapel or not kelas or not topik:
         st.warning("⚠️ Mohon lengkapi Mata Pelajaran, Fase / Kelas, dan Topik / Materi!")
     else:
         try:
-            # Menggunakan model Gemini paling update
             model = genai.GenerativeModel('gemini-flash-latest')
             
-            # Perintah (Prompt) AI Skala Makro berstandar Pengawas dengan 3 Jenis LKPD Variatif
             prompt = f"""
-            Bertindaklah sebagai Pengawas Sekolah dan Ahli Kurikulum Merdeka tingkat mahir. Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) atau Modul Ajar yang komprehensif, terstruktur, dan berstandar tinggi.
+            Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) PBL dan LKPD.
+            Data: Guru: {nama_guru}, Sekolah: {sekolah}, Mapel: {mapel}, Kelas: {kelas}, Topik: {topik}, Waktu: {durasi}.
 
-            Berikut adalah data pembelajarannya:
-            - Nama Penyusun: {nama_guru}
-            - Satuan Pendidikan: {sekolah}
-            - Mata Pelajaran: {mapel}
-            - Fase / Kelas: {kelas}
-            - Topik / Materi: {topik}
-            - Alokasi Waktu: {durasi}
+            Buat struktur 11 Poin standar RPP (Identitas hingga Refleksi).
+            
+            PADA POIN 11 (LAMPIRAN), BUAT 3 LKPD (Dasar, HOTS, Terbuka).
+            ATURAN ESTETIKA LKPD WAJIB:
+            1. Jangan gunakan ASCII Art (seperti kotak dari tanda + dan -). 
+            2. Gunakan TABEL MARKDOWN ASLI (dengan tanda | ) untuk setiap kolom isian, ruang gambar, atau format soal agar rapi di MS Word.
+            3. Berikan [AREA GAMBAR: Deskripsikan gambar apa yang harus dimasukkan guru di sini, misal: "Gambar anak membuang sampah"] di dalam tabel agar LKPD menarik. Gunakan emoji yang relevan pada judul dan instruksi.
 
-            Berdasarkan data di atas, susunlah modul ajar dengan struktur detail dan wajib persis seperti kerangka berikut:
-
-            1. IDENTITAS MODUL: Sajikan dalam bentuk daftar yang rapi.
-            2. IDENTIFIKASI MURID:
-               - Pengetahuan Awal.
-               - Minat Belajar & Pertanyaan Pemantik.
-               - Latar Belakang & Kebutuhan Belajar: Uraikan pembagian berdasarkan gaya belajar Visual, Auditori, dan Kinestetik.
-            3. MATA PELAJARAN:
-               - Jenis Pengetahuan yang Akan Dicapai (Faktual, Konseptual, Prosedural).
-               - Relevansi dengan Kehidupan Nyata.
-               - Struktur Materi.
-            4. DIMENSI PROFIL LULUSAN: Cantumkan minimal 4 dimensi karakter yang relevan.
-            5. DESAIN PEMBELAJARAN:
-               - Capaian Pembelajaran (Sesuaikan dengan fase dan mapel).
-               - Lintas Disiplin Ilmu (Kaitkan dengan mapel lain).
-               - Pemahaman Bermakna.
-               - Tujuan Pembelajaran: WAJIB gunakan Taksonomi Bloom berurutan dari C1 (Mengingat/Mengidentifikasi) sampai C6 (Mengevaluasi/Mencipta).
-               - Indikator Ketercapaian Tujuan Pembelajaran (IKTP).
-            6. PRAKTIK PEDAGOGIS & LINGKUNGAN BELAJAR:
-               - Pendekatan (Deep Learning), Metode, dan Model Pembelajaran: WAJIB gunakan Problem-Based Learning (PBL).
-               - Lingkungan Belajar: Jelaskan desain Ruang Fisik (tata letak bangku, pojok belajar), Ruang Virtual, dan Budaya Belajar (Growth Mindset).
-               - Pemanfaatan Digital (TPACK).
-            7. PENGALAMAN BELAJAR (SKENARIO KEGIATAN):
-               - Susun skenario dengan sangat rinci (Kegiatan Awal, Inti, dan Penutup).
-               - Kegiatan Inti WAJIB memuat 5 Sintaks PBL secara berurutan: (1) Orientasi siswa pada masalah, (2) Mengorganisasikan siswa untuk belajar, (3) Membimbing penyelidikan individu/kelompok, (4) Mengembangkan dan menyajikan hasil karya/solusi, (5) Menganalisis dan mengevaluasi proses pemecahan masalah.
-               - ATURAN WAJIB: Di setiap akhir kalimat aktivitas guru/siswa, cantumkan tag/label Deep Learning persis seperti ini: [Tahap: (Sebutkan tahapnya), Prinsip: Mindful / Meaningful / Joyful]. Pastikan ketiga prinsip tersebut terdistribusi merata.
-            8. ASESMEN PEMBELAJARAN: Jelaskan pelaksanaan asesmen Awal, Proses (Formatif), dan Akhir (Sumatif). Lengkapi dengan indikator yang jelas, bukan sekadar template kosong.
-            9. PENGAYAAN DAN REMEDIAL.
-            10. REFLEKSI PEMBELAJARAN: Susun daftar pertanyaan refleksi untuk Guru dan Murid.
-            11. LAMPIRAN (WAJIB ADA): 
-                - Rangkuman ringkas Bahan Ajar dan Media Pembelajaran. 
-                - KISI-KISI RUBRIK PENILAIAN yang berisi indikator konkret. 
-                - SEBAGAI SOLUSI KETIADAAN BUKU LKS, WAJIB BUATKAN 3 (TIGA) JENIS LEMBAR KERJA PESERTA DIDIK (LKPD) FULL DAN SIAP CETAK. Ketiga LKPD tersebut harus bervariasi:
-                  * LKPD 1: PEMAHAMAN KONSEP DASAR. Berisi soal-soal terstruktur.
-                  * LKPD 2: SOAL HOTS (Higher Order Thinking Skills). Berisi studi kasus pemecahan masalah tingkat tinggi.
-                  * LKPD 3: EKSPLORASI TERBUKA (Open-Ended) / PENALARAN KRITIS. Berisi pertanyaan esai pemantik.
-                  Setiap LKPD harus memuat: Identitas (Nama), Tujuan, Petunjuk, Narasi Masalah, dan Ruang/Tabel Isian yang siap dijawab.
-
-            Gunakan gaya bahasa formal, akademis, inovatif, dan berpusat pada peserta didik sesuai standar regulasi terbaru. Gunakan format Markdown (bold, italic, list) yang sangat rapi.
+            Gunakan gaya bahasa formal. Pastikan pembuatan tabel rapi.
             """
             
-            # Menampilkan animasi loading
-            with st.spinner("🤖 AI sedang merancang Modul Ajar dan LKPD Anda. Mohon tunggu sekitar 15-25 detik..."):
+            with st.spinner("🤖 Merancang Modul Ajar dan LKPD Estetik (20 detik)..."):
                 response = model.generate_content(prompt)
                 
-            st.success("✅ Modul Ajar dan LKPD variatif berhasil dibuat!")
-            st.markdown(response.text)
+            st.success("✅ Selesai dibuat!")
             
-            # --- PROSES MEMBUAT FILE WORD OTOMATIS (DENGAN PEMERAPIHAN TEKS & TABEL) ---
+            # PROSES PARSING KE WORD YANG DIPERBAIKI (BEBAS SIMBOL KOTOR)
             doc = docx.Document()
             lines = response.text.split('\n')
             
             in_table = False
             table_data = []
             
-            # Fungsi untuk mendeteksi teks Tebal (Bold) dan Miring (Italic)
-            def format_text(paragraph, text):
-                parts = re.split(r'(\*\*.*?\*\*)', text)
-                for part in parts:
-                    if part.startswith('**') and part.endswith('**'):
-                        run = paragraph.add_run(part[2:-2])
-                        run.bold = True
-                    else:
-                        sub_parts = re.split(r'(\*[^\*]+\*)', part)
-                        for sub_part in sub_parts:
-                            if sub_part.startswith('*') and sub_part.endswith('*'):
-                                run = paragraph.add_run(sub_part[1:-1])
-                                run.italic = True
-                            else:
-                                paragraph.add_run(sub_part)
+            def clean_text_for_word(text):
+                # Menghapus sisa simbol markdown yang sering bocor
+                text = text.replace('#', '').replace('**', '').replace('*', '').replace('`', '').replace('>', '').strip()
+                return text
 
             for line in lines:
                 line_strip = line.strip()
                 
-                # Mendeteksi Tabel (garis lurus | )
+                # Deteksi Tabel
                 if line_strip.startswith('|') and line_strip.endswith('|'):
                     in_table = True
                     row = [cell.strip() for cell in line_strip.split('|')[1:-1]]
-                    # Abaikan garis putus-putus pembatas tabel seperti |---|---|
                     if not all(c == '' or set(c).issubset({'-', ':', ' '}) for c in row):
                         table_data.append(row)
                     continue
                 else:
-                    # Jika tabel sudah selesai, render tabelnya ke Word
                     if in_table and table_data:
                         table = doc.add_table(rows=len(table_data), cols=len(table_data[0]))
-                        table.style = 'Table Grid' # Beri garis tabel yang rapi
+                        table.style = 'Table Grid'
                         for i, row in enumerate(table_data):
                             for j, cell_text in enumerate(row):
                                 if j < len(table.columns):
-                                    # Bersihkan simbol tebal/miring di dalam tabel agar rapi
-                                    clean_text = cell_text.replace('**', '').replace('*', '')
-                                    table.cell(i, j).text = clean_text
+                                    table.cell(i, j).text = clean_text_for_word(cell_text)
                         table_data = []
                         in_table = False
-                        doc.add_paragraph() # Beri sedikit jarak setelah tabel
+                        doc.add_paragraph() 
 
-                # Abaikan baris kosong jika sedang tidak membuat tabel
                 if not line_strip:
                     if not in_table:
                         doc.add_paragraph()
                     continue
 
-                # Mendeteksi Judul Besar (Heading #)
-                if line_strip.startswith('# '):
-                    doc.add_heading(line_strip[2:].replace('**', ''), level=1)
-                elif line_strip.startswith('## '):
-                    doc.add_heading(line_strip[3:].replace('**', ''), level=2)
-                elif line_strip.startswith('### '):
-                    doc.add_heading(line_strip[4:].replace('**', ''), level=3)
+                # Format Teks & Bersihkan Simbol
+                cleaned_line = clean_text_for_word(line_strip)
                 
-                # Mendeteksi Bullet Point (* atau -)
+                if line_strip.startswith('#'):
+                    # Jadikan Judul Tebal
+                    p = doc.add_paragraph()
+                    run = p.add_run(cleaned_line)
+                    run.bold = True
+                    run.font.size = Pt(14) if line_strip.startswith('# ') else Pt(12)
                 elif line_strip.startswith('- ') or line_strip.startswith('* '):
                     p = doc.add_paragraph(style='List Bullet')
-                    format_text(p, line_strip[2:])
-                
-                # Mendeteksi List Angka (1. , 2. , 3.)
+                    p.add_run(cleaned_line)
                 elif re.match(r'^\d+\.\s', line_strip):
                     p = doc.add_paragraph(style='List Number')
-                    clean_line = re.sub(r'^\d+\.\s', '', line_strip)
-                    format_text(p, clean_line)
-                
-                # Teks biasa / Paragraf Normal
+                    p.add_run(re.sub(r'^\d+\.\s', '', cleaned_line))
                 else:
                     p = doc.add_paragraph()
-                    format_text(p, line_strip)
+                    p.add_run(cleaned_line)
                     
-            # Jika tabel ada di bagian paling akhir dokumen
-            if in_table and table_data:
-                table = doc.add_table(rows=len(table_data), cols=len(table_data[0]))
-                table.style = 'Table Grid'
-                for i, row in enumerate(table_data):
-                    for j, cell_text in enumerate(row):
-                        if j < len(table.columns):
-                            clean_text = cell_text.replace('**', '').replace('*', '')
-                            table.cell(i, j).text = clean_text
-
-            # --- SELESAI PROSES MEMBUAT WORD ---
-            
             buffer = BytesIO()
             doc.save(buffer)
             buffer.seek(0)
             
-            # Menampilkan tombol Download Word (.docx)
             st.download_button(
-                label="📥 Download Modul Ajar + 3 LKPD (Format Word / .docx)",
+                label="📥 Download Modul Ajar + LKPD Rapi (Word)",
                 data=buffer,
                 file_name=f"Modul_Ajar_Rapi_{mapel}_{kelas}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
             
         except Exception as e:
-            st.error(f"❌ Terjadi kesalahan pada sistem AI: {e}")
+            st.error(f"❌ Terjadi kesalahan: {e}")
