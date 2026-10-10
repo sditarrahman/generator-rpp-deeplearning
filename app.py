@@ -1,7 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
 import docx
-from docx.shared import Pt, RGBColor
+from docx.shared import Pt
 import re
 from io import BytesIO
 
@@ -43,23 +43,26 @@ if submit:
             Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) PBL dan LKPD.
             Data: Guru: {nama_guru}, Sekolah: {sekolah}, Mapel: {mapel}, Kelas: {kelas}, Topik: {topik}, Waktu: {durasi}.
 
-            Buat struktur 11 Poin standar RPP (Identitas hingga Refleksi).
+            Buat struktur 11 Poin standar RPP.
+            
+            ATURAN PENGGUNAAN TABEL (SANGAT PENTING):
+            1. UNTUK POIN 1 SAMPAI 10 (Materi RPP/Modul Ajar utama): DILARANG KERAS menggunakan format Tabel Markdown. Gunakan format Teks Biasa, Paragraf, atau Bullet Point/Numbering saja. Identitas modul, CP, TP, Skenario Pembelajaran TIDAK BOLEH berada di dalam tabel.
+            2. UNTUK POIN 11 (LAMPIRAN RUBRIK & 3 LKPD): DIWAJIBKAN menggunakan Tabel Markdown ASLI (dengan tanda |) khusus untuk membuat: Kisi-kisi Rubrik Penilaian, Kolom Isian LKPD Siswa, dan Ruang Gambar/Area Kosong.
             
             PADA POIN 11 (LAMPIRAN), BUAT 3 LKPD (Dasar, HOTS, Terbuka).
             ATURAN ESTETIKA LKPD WAJIB:
-            1. Jangan gunakan ASCII Art (seperti kotak dari tanda + dan -). 
-            2. Gunakan TABEL MARKDOWN ASLI (dengan tanda | ) untuk setiap kolom isian, ruang gambar, atau format soal agar rapi di MS Word.
-            3. Berikan [AREA GAMBAR: Deskripsikan gambar apa yang harus dimasukkan guru di sini, misal: "Gambar anak membuang sampah"] di dalam tabel agar LKPD menarik. Gunakan emoji yang relevan pada judul dan instruksi.
+            1. Jangan gunakan ASCII Art (+ dan -). 
+            2. Berikan [AREA GAMBAR: Deskripsikan gambar apa yang harus dimasukkan guru di sini] di dalam sel tabel khusus agar LKPD menarik. Gunakan emoji pada judul dan instruksi.
 
-            Gunakan gaya bahasa formal. Pastikan pembuatan tabel rapi.
+            Gunakan gaya bahasa formal, akademis.
             """
             
-            with st.spinner("🤖 Merancang Modul Ajar dan LKPD Estetik (20 detik)..."):
+            with st.spinner("🤖 Merancang Modul Ajar dan LKPD Cerdas (20 detik)..."):
                 response = model.generate_content(prompt)
                 
             st.success("✅ Selesai dibuat!")
             
-            # PROSES PARSING KE WORD YANG DIPERBAIKI (BEBAS SIMBOL KOTOR)
+            # PROSES PARSING KE WORD YANG CERDAS
             doc = docx.Document()
             lines = response.text.split('\n')
             
@@ -67,7 +70,6 @@ if submit:
             table_data = []
             
             def clean_text_for_word(text):
-                # Menghapus sisa simbol markdown yang sering bocor
                 text = text.replace('#', '').replace('**', '').replace('*', '').replace('`', '').replace('>', '').strip()
                 return text
 
@@ -98,11 +100,10 @@ if submit:
                         doc.add_paragraph()
                     continue
 
-                # Format Teks & Bersihkan Simbol
+                # Format Teks Biasa & Judul
                 cleaned_line = clean_text_for_word(line_strip)
                 
                 if line_strip.startswith('#'):
-                    # Jadikan Judul Tebal
                     p = doc.add_paragraph()
                     run = p.add_run(cleaned_line)
                     run.bold = True
@@ -124,7 +125,7 @@ if submit:
             st.download_button(
                 label="📥 Download Modul Ajar + LKPD Rapi (Word)",
                 data=buffer,
-                file_name=f"Modul_Ajar_Rapi_{mapel}_{kelas}.docx",
+                file_name=f"Modul_Ajar_Final_{mapel}_{kelas}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
             
