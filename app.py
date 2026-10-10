@@ -99,7 +99,7 @@ if submit_button:
                 # --- PROSES MEMBUAT FILE WORD OTOMATIS ---
                 doc = docx.Document()
                 for baris in response.text.split('\n'):
-                    doc.add_paragraph(baris)
+                doc.add_paragraph(baris)
                 
                 buffer = BytesIO()
                 doc.save(buffer)
@@ -107,11 +107,11 @@ if submit_button:
                 
                 # Menampilkan tombol Download Word
                 st.download_button(
-                    label="📥 Download Modul Ajar (Word / .docx)",
-                    data=buffer,
-                    file_name=f"Modul_Ajar.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    )
+                label="📥 Download Modul Ajar (Word / .docx)",
+                data=buffer,
+                file_name=f"Modul_Ajar.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
                 
                 except Exception as e:
                 st.error(f"Terjadi kesalahan pada sistem AI: {e}")
