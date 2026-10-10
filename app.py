@@ -87,7 +87,7 @@ if submit_button:
                 # Tombol Download
                 st.download_button
                 # (Kode di atasnya biarkan saja)
-if submit:
+    if submit:
         try:
             # Meminta AI membuat modul ajar
             response = model.generate_content(prompt)
