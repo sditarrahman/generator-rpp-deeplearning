@@ -47,7 +47,7 @@ if submit:
             # Menggunakan model Gemini paling update
             model = genai.GenerativeModel('gemini-flash-latest')
             
-            # Perintah (Prompt) AI Skala Makro berstandar Pengawas dengan model PBL
+            # Perintah (Prompt) AI Skala Makro berstandar Pengawas dengan 3 Jenis LKPD Variatif
             prompt = f"""
             Bertindaklah sebagai Pengawas Sekolah dan Ahli Kurikulum Merdeka tingkat mahir. Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) atau Modul Ajar yang komprehensif, terstruktur, dan berstandar tinggi.
 
@@ -88,16 +88,23 @@ if submit:
             8. ASESMEN PEMBELAJARAN: Jelaskan pelaksanaan asesmen Awal, Proses (Formatif), dan Akhir (Sumatif). Lengkapi dengan indikator yang jelas, bukan sekadar template kosong.
             9. PENGAYAAN DAN REMEDIAL.
             10. REFLEKSI PEMBELAJARAN: Susun daftar pertanyaan refleksi untuk Guru dan Murid.
-            11. LAMPIRAN: Berikan rangkuman ringkas untuk Bahan Ajar, Media Pembelajaran, Konsep Lembar Kerja Peserta Didik (LKPD), dan Kisi-kisi Rubrik Penilaian (harus berisi indikator konkret, jangan dibiarkan kosong).
+            11. LAMPIRAN (WAJIB ADA): 
+                - Rangkuman ringkas Bahan Ajar dan Media Pembelajaran. 
+                - KISI-KISI RUBRIK PENILAIAN yang berisi indikator konkret. 
+                - SEBAGAI SOLUSI KETIADAAN BUKU LKS, WAJIB BUATKAN 3 (TIGA) JENIS LEMBAR KERJA PESERTA DIDIK (LKPD) FULL DAN SIAP CETAK. Ketiga LKPD tersebut harus bervariasi:
+                  * LKPD 1: PEMAHAMAN KONSEP DASAR. Berisi soal-soal terstruktur untuk memastikan murid memahami teori dasar dari materi.
+                  * LKPD 2: SOAL HOTS (Higher Order Thinking Skills). Berisi studi kasus pemecahan masalah tingkat tinggi (menganalisis dan mengevaluasi).
+                  * LKPD 3: EKSPLORASI TERBUKA (Open-Ended) / PENALARAN KRITIS. Berisi pertanyaan esai pemantik di mana jawabannya membebaskan murid untuk berpendapat berdasarkan pemahaman, imajinasi, dan logika kritis mereka sendiri (tidak ada jawaban baku).
+                  Setiap LKPD harus memuat: Identitas (Nama), Tujuan, Petunjuk Pengerjaan, Narasi Masalah, dan Ruang/Tabel Isian yang siap dijawab oleh siswa.
             
             Gunakan gaya bahasa formal, akademis, inovatif, dan berpusat pada peserta didik sesuai standar regulasi terbaru. Gunakan format Markdown (bold, italic, list) yang sangat rapi agar saat dikonversi ke Microsoft Word hasilnya memukau.
             """
             
             # Menampilkan animasi loading
-            with st.spinner("🤖 AI sedang merancang Modul Ajar PBL Anda. Mohon tunggu sekitar 10-20 detik..."):
+            with st.spinner("🤖 AI sedang merancang Modul Ajar dan 3 Jenis LKPD Anda. Mohon tunggu sekitar 15-25 detik..."):
                 response = model.generate_content(prompt)
                 
-            st.success("✅ Modul Ajar berhasil dibuat!")
+            st.success("✅ Modul Ajar dan LKPD variatif berhasil dibuat!")
             st.markdown(response.text)
             
             # --- PROSES MEMBUAT FILE WORD OTOMATIS ---
@@ -111,9 +118,9 @@ if submit:
             
             # Menampilkan tombol Download Word (.docx)
             st.download_button(
-                label="📥 Download Modul Ajar (Format Word / .docx)",
+                label="📥 Download Modul Ajar + 3 LKPD (Format Word / .docx)",
                 data=buffer,
-                file_name=f"Modul_Ajar_PBL_{mapel}_{kelas}.docx",
+                file_name=f"Modul_Ajar_Lengkap_{mapel}_{kelas}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
             
