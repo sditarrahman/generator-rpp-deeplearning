@@ -111,7 +111,7 @@ if submit_button:
                     data=buffer,
                     file_name=f"Modul_Ajar.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
-            
-                 except Exception as e:
+                    )
+                
+                except Exception as e:
                 st.error(f"Terjadi kesalahan pada sistem AI: {e}")
