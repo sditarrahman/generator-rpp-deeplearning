@@ -10,11 +10,11 @@ st.set_page_config(page_title="Generator Modul Ajar Deep Learning", page_icon="�
 st.title("🤖 Web Generator Modul Ajar Otomatis")
 st.markdown("Aplikasi ini membantu guru menyusun rancangan pembelajaran mendalam (*Deep Learning*) yang memuat unsur **Mindful, Meaningful, dan Joyful** serta terintegrasi **TPACK**.")
 
-# Mengambil API Key dari brankas rahasia Streamlit
+# Mengambil API Key dari brankas rahasia Streamlit (Secrets)
 try:
     api_key = st.secrets["API_KEY"]
     genai.configure(api_key=api_key)
-except:
+except Exception as e:
     st.error("⚠️ Sistem belum dikonfigurasi. Pemilik aplikasi harus memasukkan API_KEY di pengaturan rahasia (Secrets) Streamlit.")
     st.stop()
 
@@ -39,14 +39,16 @@ with st.form("form_rpp"):
 
 # Logika Pemrosesan AI
 if submit:
+    # Cek kelengkapan data wajib
     if not mapel or not kelas or not topik:
         st.warning("⚠️ Mohon lengkapi Mata Pelajaran, Fase / Kelas, dan Topik / Materi!")
     else:
         try:
+            # Menggunakan model Gemini paling update
             model = genai.GenerativeModel('gemini-flash-latest')
             
+            # Perintah (Prompt) AI Skala Makro berstandar Pengawas dengan model PBL
             prompt = f"""
-           prompt = f"""
             Bertindaklah sebagai Pengawas Sekolah dan Ahli Kurikulum Merdeka tingkat mahir. Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) atau Modul Ajar yang komprehensif, terstruktur, dan berstandar tinggi.
 
             Berikut adalah data pembelajarannya:
@@ -91,12 +93,14 @@ if submit:
             Gunakan gaya bahasa formal, akademis, inovatif, dan berpusat pada peserta didik sesuai standar regulasi terbaru. Gunakan format Markdown (bold, italic, list) yang sangat rapi agar saat dikonversi ke Microsoft Word hasilnya memukau.
             """
             
-            with st.spinner("🤖 AI sedang merancang Modul Ajar Anda. Mohon tunggu sekitar 10-20 detik..."):
+            # Menampilkan animasi loading
+            with st.spinner("🤖 AI sedang merancang Modul Ajar PBL Anda. Mohon tunggu sekitar 10-20 detik..."):
                 response = model.generate_content(prompt)
                 
             st.success("✅ Modul Ajar berhasil dibuat!")
             st.markdown(response.text)
             
+            # --- PROSES MEMBUAT FILE WORD OTOMATIS ---
             doc = docx.Document()
             for baris in response.text.split('\n'):
                 doc.add_paragraph(baris)
@@ -105,10 +109,11 @@ if submit:
             doc.save(buffer)
             buffer.seek(0)
             
+            # Menampilkan tombol Download Word (.docx)
             st.download_button(
                 label="📥 Download Modul Ajar (Format Word / .docx)",
                 data=buffer,
-                file_name=f"Modul_Ajar_{mapel}_{kelas}.docx",
+                file_name=f"Modul_Ajar_PBL_{mapel}_{kelas}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
             
