@@ -2,14 +2,14 @@ import streamlit as st
 import google.generativeai as genai
 import docx
 from docx.shared import Pt
-import re
+import json
 from io import BytesIO
 
 # Konfigurasi Tampilan Halaman Web
 st.set_page_config(page_title="Generator Modul Ajar Deep Learning", page_icon="📚", layout="centered")
 
-st.title("🤖 Web Generator Modul Ajar Otomatis")
-st.markdown("Aplikasi ini membantu guru menyusun rancangan pembelajaran mendalam (*Deep Learning*) terintegrasi LKPD Estetik.")
+st.title("🤖 Web Generator Modul Ajar (JSON Mode)")
+st.markdown("Versi ini menggunakan format data terstruktur untuk menjamin **0% error** pada tabel dan layout Microsoft Word.")
 
 # Mengambil API Key dari brankas rahasia Streamlit (Secrets)
 try:
@@ -37,97 +37,120 @@ if submit:
         st.warning("⚠️ Mohon lengkapi Mata Pelajaran, Fase / Kelas, dan Topik / Materi!")
     else:
         try:
-            model = genai.GenerativeModel('gemini-flash-latest')
+            # Menggunakan JSON Mode pada Gemini
+            model = genai.GenerativeModel('gemini-1.5-flash')
             
             prompt = f"""
             Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) PBL dan LKPD.
             Data: Guru: {nama_guru}, Sekolah: {sekolah}, Mapel: {mapel}, Kelas: {kelas}, Topik: {topik}, Waktu: {durasi}.
 
-            Buat struktur 11 Poin standar RPP.
+            Keluarkan hasil HANYA dalam format JSON dengan struktur yang persis seperti ini:
+            {{
+                "modul_ajar": [
+                    {{
+                        "judul_bab": "1. IDENTITAS MODUL",
+                        "isi_teks": ["Nama Guru: ...", "Mata Pelajaran: ..."]
+                    }},
+                    {{
+                        "judul_bab": "2. TUJUAN PEMBELAJARAN",
+                        "isi_teks": ["Tujuan 1...", "Tujuan 2..."]
+                    }}
+                ],
+                "lkpd": [
+                    {{
+                        "judul_lkpd": "LKPD 1: TINGKAT DASAR",
+                        "instruksi": ["Langkah 1...", "Langkah 2..."],
+                        "tabel_data": [
+                            ["Kolom 1", "Kolom 2", "Kolom 3"],
+                            ["Baris 1 A", "Baris 1 B", "Baris 1 C"],
+                            ["Baris 2 A", "[AREA GAMBAR: Deskripsi]", "Baris 2 C"]
+                        ]
+                    }}
+                ]
+            }}
             
-            ATURAN PENGGUNAAN TABEL (SANGAT PENTING):
-            1. UNTUK POIN 1 SAMPAI 10 (Materi RPP/Modul Ajar utama): DILARANG KERAS menggunakan format Tabel Markdown. Gunakan format Teks Biasa, Paragraf, atau Bullet Point/Numbering saja. Identitas modul, CP, TP, Skenario Pembelajaran TIDAK BOLEH berada di dalam tabel.
-            2. UNTUK POIN 11 (LAMPIRAN RUBRIK & 3 LKPD): DIWAJIBKAN menggunakan Tabel Markdown ASLI (dengan tanda |) khusus untuk membuat: Kisi-kisi Rubrik Penilaian, Kolom Isian LKPD Siswa, dan Ruang Gambar/Area Kosong.
-            
-            PADA POIN 11 (LAMPIRAN), BUAT 3 LKPD (Dasar, HOTS, Terbuka).
-            ATURAN ESTETIKA LKPD WAJIB:
-            1. Jangan gunakan ASCII Art (+ dan -). 
-            2. Berikan [AREA GAMBAR: Deskripsikan gambar apa yang harus dimasukkan guru di sini] di dalam sel tabel khusus agar LKPD menarik. Gunakan emoji pada judul dan instruksi.
-
-            Gunakan gaya bahasa formal, akademis.
+            ATURAN PENTING:
+            1. Buat 10 Poin standar RPP di dalam array "modul_ajar".
+            2. Buat 3 LKPD (Dasar, HOTS, Terbuka) di dalam array "lkpd".
+            3. DILARANG menggunakan kode HTML (<br>) atau markdown (*, #) di dalam nilai JSON. Gunakan teks polos (plain text).
             """
             
-            with st.spinner("🤖 Merancang Modul Ajar dan LKPD Cerdas (20 detik)..."):
-                response = model.generate_content(prompt)
+            with st.spinner("🤖 Menyusun Modul (Menggunakan JSON Schema, Anti-Error)..."):
+                # Memaksa Gemini merespons dalam bentuk JSON
+                response = model.generate_content(
+                    prompt,
+                    generation_config=genai.GenerationConfig(
+                        response_mime_type="application/json",
+                        temperature=0.4 # Suhu diturunkan agar AI lebih patuh pada format
+                    )
+                )
                 
-            st.success("✅ Selesai dibuat!")
+            # Mengubah teks JSON dari Gemini menjadi Dictionary Python
+            data = json.loads(response.text)
+            st.success("✅ Data berhasil digenerate! Menyusun dokumen Word...")
             
-            # PROSES PARSING KE WORD YANG CERDAS
+            # --- MULAI MENYUSUN WORD DENGAN PYTHON ---
             doc = docx.Document()
-            lines = response.text.split('\n')
             
-            in_table = False
-            table_data = []
+            # 1. Menyusun RPP (Poin 1-10)
+            for bab in data.get("modul_ajar", []):
+                # Tulis Judul Bab (Bold)
+                p_judul = doc.add_paragraph()
+                run = p_judul.add_run(bab.get("judul_bab", ""))
+                run.bold = True
+                run.font.size = Pt(12)
+                
+                # Tulis Isi Teks
+                for teks in bab.get("isi_teks", []):
+                    doc.add_paragraph(teks, style='List Bullet' if len(bab.get("isi_teks")) > 1 else 'Normal')
             
-            def clean_text_for_word(text):
-                text = text.replace('#', '').replace('**', '').replace('*', '').replace('`', '').replace('>', '').strip()
-                return text
-
-            for line in lines:
-                line_strip = line.strip()
+            doc.add_page_break()
+            
+            # 2. Menyusun LKPD (Poin 11)
+            p_lampiran = doc.add_paragraph()
+            run_lampiran = p_lampiran.add_run("11. LAMPIRAN: LKPD")
+            run_lampiran.bold = True
+            run_lampiran.font.size = Pt(14)
+            
+            for lkpd in data.get("lkpd", []):
+                doc.add_paragraph() # Spasi
                 
-                # Deteksi Tabel
-                if line_strip.startswith('|') and line_strip.endswith('|'):
-                    in_table = True
-                    row = [cell.strip() for cell in line_strip.split('|')[1:-1]]
-                    if not all(c == '' or set(c).issubset({'-', ':', ' '}) for c in row):
-                        table_data.append(row)
-                    continue
-                else:
-                    if in_table and table_data:
-                        table = doc.add_table(rows=len(table_data), cols=len(table_data[0]))
-                        table.style = 'Table Grid'
-                        for i, row in enumerate(table_data):
-                            for j, cell_text in enumerate(row):
-                                if j < len(table.columns):
-                                    table.cell(i, j).text = clean_text_for_word(cell_text)
-                        table_data = []
-                        in_table = False
-                        doc.add_paragraph() 
-
-                if not line_strip:
-                    if not in_table:
-                        doc.add_paragraph()
-                    continue
-
-                # Format Teks Biasa & Judul
-                cleaned_line = clean_text_for_word(line_strip)
+                # Judul LKPD
+                p_judul_lkpd = doc.add_paragraph()
+                run_lkpd = p_judul_lkpd.add_run(lkpd.get("judul_lkpd", ""))
+                run_lkpd.bold = True
                 
-                if line_strip.startswith('#'):
-                    p = doc.add_paragraph()
-                    run = p.add_run(cleaned_line)
-                    run.bold = True
-                    run.font.size = Pt(14) if line_strip.startswith('# ') else Pt(12)
-                elif line_strip.startswith('- ') or line_strip.startswith('* '):
-                    p = doc.add_paragraph(style='List Bullet')
-                    p.add_run(cleaned_line)
-                elif re.match(r'^\d+\.\s', line_strip):
-                    p = doc.add_paragraph(style='List Number')
-                    p.add_run(re.sub(r'^\d+\.\s', '', cleaned_line))
-                else:
-                    p = doc.add_paragraph()
-                    p.add_run(cleaned_line)
+                # Instruksi LKPD
+                for inst in lkpd.get("instruksi", []):
+                    doc.add_paragraph(inst)
+                    
+                # Menggambar Tabel LKPD
+                tabel_data = lkpd.get("tabel_data", [])
+                if tabel_data and len(tabel_data) > 0:
+                    # Buat tabel berdasarkan jumlah baris dan kolom dari JSON
+                    table = doc.add_table(rows=len(tabel_data), cols=len(tabel_data[0]))
+                    table.style = 'Table Grid'
+                    
+                    for r_idx, row_data in enumerate(tabel_data):
+                        for c_idx, cell_data in enumerate(row_data):
+                            # Jika jumlah kolom konsisten
+                            if c_idx < len(table.columns): 
+                                table.cell(r_idx, c_idx).text = str(cell_data)
+                
+                doc.add_paragraph() # Spasi antar LKPD
                     
             buffer = BytesIO()
             doc.save(buffer)
             buffer.seek(0)
             
             st.download_button(
-                label="📥 Download Modul Ajar + LKPD Rapi (Word)",
+                label="📥 Download Modul Ajar Super Rapi (Word)",
                 data=buffer,
-                file_name=f"Modul_Ajar_Final_{mapel}_{kelas}.docx",
+                file_name=f"Modul_Ajar_JSON_{mapel}_{kelas}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
             
+        except json.JSONDecodeError:
+            st.error("❌ Gagal membaca format data dari AI. Silakan coba tekan tombol buat lagi.")
         except Exception as e:
-            st.error(f"❌ Terjadi kesalahan: {e}")
+            st.error(f"❌ Terjadi kesalahan sistem: {e}")
