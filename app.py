@@ -1,4 +1,6 @@
 import streamlit as st
+import docx
+from io import BytesIO
 import google.generativeai as genai
 
 # Konfigurasi Tampilan Halaman Web
@@ -84,10 +86,26 @@ if submit_button:
                 
                 # Tombol Download
                 st.download_button(
-                    label="📥 Unduh Modul Ajar (Format .txt/.md)",
-                    data=response.text,
-                    file_name=f"Modul_Ajar_{mapel}_{kelas}.md",
-                    mime="text/markdown"
+                   # --- PROSES MEMBUAT FILE WORD OTOMATIS ---
+                    # Membuat dokumen Word baru
+                    doc = docx.Document()
+                    
+                    # Memasukkan teks hasil AI ke dalam dokumen Word per baris
+                    for baris in response.text.split('\n'):
+                        doc.add_paragraph(baris)
+                    
+                    # Menyimpan file Word ke dalam memori (buffer)
+                    buffer = BytesIO()
+                    doc.save(buffer)
+                    buffer.seek(0)
+                    
+                    # Menampilkan tombol Download Word
+                    st.download_button(
+                        label="📥 Download Modul Ajar (Word / .docx)",
+                        data=buffer,
+                        file_name=f"Modul_Ajar_{mapel}_{kelas}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
                 )
             except Exception as e:
                 st.error(f"Terjadi kesalahan pada sistem AI: {e}")
