@@ -38,7 +38,7 @@ if submit:
         st.warning("⚠️ Mohon lengkapi Mata Pelajaran, Kelas, dan Topik!")
     else:
         try:
-            model = genai.GenerativeModel('gemini-last-version')
+            model = genai.GenerativeModel('gemini-flash-latest')
             gen_config = genai.GenerationConfig(
                 response_mime_type="application/json",
                 temperature=0.2, # Suhu rendah agar AI memproses teks cepat dan patuh JSON
