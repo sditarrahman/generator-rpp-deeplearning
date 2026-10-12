@@ -1,22 +1,23 @@
 import streamlit as st
-import google.generativeai as genai
+import anthropic
 import docx
 from docx.shared import Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 import json
 from io import BytesIO
 
 # Konfigurasi Tampilan Halaman Web
 st.set_page_config(page_title="Generator Modul Ajar Deep Learning", page_icon="📚", layout="centered")
 
-st.title("🤖 Web Generator Modul Ajar")
-st.markdown("Versi ini menggunakan format data terstruktur untuk menjamin **0% error** pada tabel dan layout Microsoft Word.")
+st.title("🤖 Web Generator Modul Ajar (Format Pengawas)")
+st.markdown("Versi ini menggunakan **Claude 3.5 Sonnet** dengan format JSON Block untuk meniru 100% struktur dari dokumen pengawas secara rapi dan bebas *error*.")
 
 # Mengambil API Key dari brankas rahasia Streamlit (Secrets)
 try:
-    api_key = st.secrets["API_KEY"]
-    genai.configure(api_key=api_key)
+    api_key = st.secrets["ANTHROPIC_API_KEY"] 
+    client = anthropic.Anthropic(api_key=api_key)
 except Exception as e:
-    st.error("⚠️ Sistem belum dikonfigurasi. Masukkan API_KEY di pengaturan Secrets.")
+    st.error("⚠️ Sistem belum dikonfigurasi. Masukkan ANTHROPIC_API_KEY di pengaturan Secrets Streamlit.")
     st.stop()
 
 with st.form("form_rpp"):
@@ -27,130 +28,123 @@ with st.form("form_rpp"):
         sekolah = st.text_input("Satuan Pendidikan", placeholder="Misal: SDN 1 Kediri")
         mapel = st.text_input("Mata Pelajaran *", placeholder="Misal: Matematika")
     with col2:
-        kelas = st.text_input("Fase / Kelas *", placeholder="Misal: Fase C / Kelas 6")
-        topik = st.text_input("Topik / Materi *", placeholder="Misal: Diagram Alir")
-        durasi = st.text_input("Alokasi Waktu", placeholder="Misal: 2 x 35 Menit")
-    submit = st.form_submit_button("✨ Buat Modul Ajar & LKPD")
+        kelas = st.text_input("Fase / Kelas / Semester *", placeholder="Misal: C / VI / I")
+        topik = st.text_input("Bab / Topik *", placeholder="Misal: Pecahan dan Desimal")
+        durasi = st.text_input("Durasi & Jumlah Siswa", placeholder="Misal: 2 JP (28 Siswa)")
+    submit = st.form_submit_button("✨ Buat Modul Ajar (Sesuai Standar Pengawas)")
 
 if submit:
     if not mapel or not kelas or not topik:
-        st.warning("⚠️ Mohon lengkapi Mata Pelajaran, Fase / Kelas, dan Topik / Materi!")
+        st.warning("⚠️ Mohon lengkapi Mata Pelajaran, Kelas, dan Topik!")
     else:
         try:
-            # Menggunakan JSON Mode pada Gemini
-            model = genai.GenerativeModel('claude-flash-latest')
-            
             prompt = f"""
-            Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) PBL dan LKPD.
+            Anda adalah Ahli Kurikulum Merdeka. Buatlah Modul Ajar Deep Learning berbasis Problem-Based Learning (PBL).
             Data: Guru: {nama_guru}, Sekolah: {sekolah}, Mapel: {mapel}, Kelas: {kelas}, Topik: {topik}, Waktu: {durasi}.
 
-            Keluarkan hasil HANYA dalam format JSON dengan struktur yang persis seperti ini:
+            WAJIB tiru struktur KERANGKA PENGAWAS ini secara berurutan:
+            1. PERENCANAAN PEMBELAJARAN MENDALAM (DEEP LEARNING) (Judul Utama)
+            2. IDENTITAS MODUL
+            3. IDENTIFIKASI MURID (Pengetahuan Awal, Minat Belajar, Latar Belakang, Kebutuhan Belajar Visual/Auditori/Kinestetik)
+            4. MATA PELAJARAN (Jenis Pengetahuan Faktual/Konseptual/Prosedural, Relevansi, Struktur Materi)
+            5. DIMENSI PROFIL LULUSAN
+            6. DESAIN PEMBELAJARAN (Capaian Pembelajaran, Lintas Disiplin Ilmu, Pemahaman Bermakna, Tujuan Pembelajaran C1-C6, IKTP)
+            7. PRAKTIK PEDAGOGIS (Pendekatan, Metode, Model Pembelajaran WAJIB PBL)
+            8. KEMITRAAN PEMBELAJARAN
+            9. LINGKUNGAN BELAJAR (Ruang Fisik, Ruang Virtual, Budaya Belajar)
+            10. PEMANFAATAN DIGITAL
+            11. PENGALAMAN BELAJAR (KEGIATAN AWAL, INTI dgn 5 Sintaks PBL, PENUTUP. Wajib beri tag [Tahap: ..., Prinsip: Mindful/Meaningful/Joyful])
+            12. ASESMEN PEMBELAJARAN (Awal, Proses, Akhir)
+            13. PENGAYAAN DAN REMIDIAL
+            14. REFLEKSI PEMBELAJARAN (Guru, Murid)
+            15. LAMPIRAN
+                - LAMPIRAN 1: BAHAN AJAR
+                - LAMPIRAN 2: MEDIA PEMBELAJARAN
+                - LAMPIRAN 3: 3 JENIS LKPD (Dasar, HOTS, Terbuka). Wajib ada [AREA GAMBAR: deskripsi] di dalam tabel LKPD.
+                - LAMPIRAN 4: INSTRUMEN PENILAIAN (Rubrik Sikap, Keterampilan, Pengetahuan HARUS TERISI INDIKATORNYA, jangan kosong).
+
+            OUTPUT HARUS BERUPA JSON STRICT dengan format "blocks". DILARANG KERAS menggunakan markdown atau tag HTML di dalam teks JSON.
+            Contoh Format JSON:
             {{
-                "modul_ajar": [
-                    {{
-                        "judul_bab": "1. IDENTITAS MODUL",
-                        "isi_teks": ["Nama Guru: ...", "Mata Pelajaran: ..."]
-                    }},
-                    {{
-                        "judul_bab": "2. TUJUAN PEMBELAJARAN",
-                        "isi_teks": ["Tujuan 1...", "Tujuan 2..."]
-                    }}
-                ],
-                "lkpd": [
-                    {{
-                        "judul_lkpd": "LKPD 1: TINGKAT DASAR",
-                        "instruksi": ["Langkah 1...", "Langkah 2..."],
-                        "tabel_data": [
-                            ["Kolom 1", "Kolom 2", "Kolom 3"],
-                            ["Baris 1 A", "Baris 1 B", "Baris 1 C"],
-                            ["Baris 2 A", "[AREA GAMBAR: Deskripsi]", "Baris 2 C"]
-                        ]
-                    }}
-                ]
+              "blocks": [
+                {{"type": "heading1", "text": "PERENCANAAN PEMBELAJARAN MENDALAM"}},
+                {{"type": "heading1", "text": "IDENTITAS MODUL"}},
+                {{"type": "table", "data": [["Nama Penyusun", ":", "{nama_guru}"], ["Mata Pelajaran", ":", "{mapel}"]]}},
+                {{"type": "heading2", "text": "Pengetahuan Awal"}},
+                {{"type": "paragraph", "text": "Peserta didik telah..."}},
+                {{"type": "bullet", "text": "Poin list pertama..."}}
+              ]
             }}
-            
-            ATURAN PENTING:
-            1. Buat 10 Poin standar RPP di dalam array "modul_ajar".
-            2. Buat 3 LKPD (Dasar, HOTS, Terbuka) di dalam array "lkpd".
-            3. DILARANG menggunakan kode HTML (<br>) atau markdown (*, #) di dalam nilai JSON. Gunakan teks polos (plain text).
+            Pilihan type yang diizinkan HANYA: "heading1", "heading2", "heading3", "paragraph", "bullet", "number", "table".
             """
             
-            with st.spinner("🤖 Menyusun Modul (Menggunakan JSON Schema, Anti-Error)..."):
-                # Memaksa Gemini merespons dalam bentuk JSON
-                response = model.generate_content(
-                    prompt,
-                    generation_config=genai.GenerationConfig(
-                        response_mime_type="application/json",
-                        temperature=0.4 # Suhu diturunkan agar AI lebih patuh pada format
-                    )
+            with st.spinner("🤖 Claude sedang merancang Modul standar Pengawas (Anti-Error)..."):
+                response = client.messages.create(
+                    model="claude-3-5-sonnet-20241022",
+                    max_tokens=8192,
+                    temperature=0.3,
+                    system="Anda AI pembuat modul. Jawab HANYA dengan JSON valid. Tanpa pembuka/penutup. Format WAJIB sesuai instruksi.",
+                    messages=[
+                        {"role": "user", "content": prompt}
+                    ]
                 )
                 
-            # Mengubah teks dari claude menjadi Dictionary Python
-            data = json.loads(response.text)
-            st.success("✅ Data berhasil digenerate! Menyusun dokumen Word...")
+            raw_response = response.content[0].text.strip()
             
-            # --- MULAI MENYUSUN WORD DENGAN PYTHON ---
+            # Pembersihan pembungkus markdown jika ada
+            if raw_response.startswith("```json"):
+                raw_response = raw_response[7:]
+            if raw_response.startswith("```"):
+                raw_response = raw_response[3:]
+            if raw_response.endswith("```"):
+                raw_response = raw_response[:-3]
+                
+            data = json.loads(raw_response.strip())
+            st.success("✅ Modul berhasil digenerate oleh Claude! Menyusun dokumen Word...")
+            
+            # --- MULAI MENYUSUN WORD BERDASARKAN BLOK ---
             doc = docx.Document()
             
-            # 1. Menyusun RPP (Poin 1-10)
-            for bab in data.get("modul_ajar", []):
-                # Tulis Judul Bab (Bold)
-                p_judul = doc.add_paragraph()
-                run = p_judul.add_run(bab.get("judul_bab", ""))
-                run.bold = True
-                run.font.size = Pt(12)
+            for block in data.get("blocks", []):
+                b_type = block.get("type")
+                b_text = block.get("text", "")
                 
-                # Tulis Isi Teks
-                for teks in bab.get("isi_teks", []):
-                    doc.add_paragraph(teks, style='List Bullet' if len(bab.get("isi_teks")) > 1 else 'Normal')
-            
-            doc.add_page_break()
-            
-            # 2. Menyusun LKPD (Poin 11)
-            p_lampiran = doc.add_paragraph()
-            run_lampiran = p_lampiran.add_run("11. LAMPIRAN: LKPD")
-            run_lampiran.bold = True
-            run_lampiran.font.size = Pt(14)
-            
-            for lkpd in data.get("lkpd", []):
-                doc.add_paragraph() # Spasi
-                
-                # Judul LKPD
-                p_judul_lkpd = doc.add_paragraph()
-                run_lkpd = p_judul_lkpd.add_run(lkpd.get("judul_lkpd", ""))
-                run_lkpd.bold = True
-                
-                # Instruksi LKPD
-                for inst in lkpd.get("instruksi", []):
-                    doc.add_paragraph(inst)
-                    
-                # Menggambar Tabel LKPD
-                tabel_data = lkpd.get("tabel_data", [])
-                if tabel_data and len(tabel_data) > 0:
-                    # Buat tabel berdasarkan jumlah baris dan kolom dari JSON
-                    table = doc.add_table(rows=len(tabel_data), cols=len(tabel_data[0]))
-                    table.style = 'Table Grid'
-                    
-                    for r_idx, row_data in enumerate(tabel_data):
-                        for c_idx, cell_data in enumerate(row_data):
-                            # Jika jumlah kolom konsisten
-                            if c_idx < len(table.columns): 
-                                table.cell(r_idx, c_idx).text = str(cell_data)
-                
-                doc.add_paragraph() # Spasi antar LKPD
+                if b_type == "heading1":
+                    p = doc.add_heading(b_text, level=1)
+                    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                elif b_type == "heading2":
+                    doc.add_heading(b_text, level=2)
+                elif b_type == "heading3":
+                    doc.add_heading(b_text, level=3)
+                elif b_type == "paragraph":
+                    doc.add_paragraph(b_text)
+                elif b_type == "bullet":
+                    doc.add_paragraph(b_text, style='List Bullet')
+                elif b_type == "number":
+                    doc.add_paragraph(b_text, style='List Number')
+                elif b_type == "table":
+                    t_data = block.get("data", [])
+                    if t_data and len(t_data) > 0:
+                        table = doc.add_table(rows=len(t_data), cols=len(t_data[0]))
+                        table.style = 'Table Grid'
+                        for r_idx, row_data in enumerate(t_data):
+                            for c_idx, cell_data in enumerate(row_data):
+                                if c_idx < len(table.columns): 
+                                    table.cell(r_idx, c_idx).text = str(cell_data)
+                        doc.add_paragraph() # Spasi ekstra setelah tabel
                     
             buffer = BytesIO()
             doc.save(buffer)
             buffer.seek(0)
             
             st.download_button(
-                label="📥 Download Modul Ajar Super Rapi (Word)",
+                label="📥 Download Modul Ajar Format Pengawas (Word)",
                 data=buffer,
-                file_name=f"Modul_Ajar_JSON_{mapel}_{kelas}.docx",
+                file_name=f"Modul_Pengawas_{mapel}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
             
-        except json.JSONDecodeError:
-            st.error("❌ Gagal membaca format data dari AI. Silakan coba tekan tombol buat lagi.")
+        except json.JSONDecodeError as e:
+            st.error("❌ Gagal membaca format data dari Claude. Silakan coba tekan tombol buat lagi.")
         except Exception as e:
             st.error(f"❌ Terjadi kesalahan sistem: {e}")
