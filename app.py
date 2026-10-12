@@ -8,7 +8,7 @@ from io import BytesIO
 # Konfigurasi Tampilan Halaman Web
 st.set_page_config(page_title="Generator Modul Ajar Deep Learning", page_icon="📚", layout="centered")
 
-st.title("🤖 Web Generator Modul Ajar (JSON Mode)")
+st.title("🤖 Web Generator Modul Ajar")
 st.markdown("Versi ini menggunakan format data terstruktur untuk menjamin **0% error** pada tabel dan layout Microsoft Word.")
 
 # Mengambil API Key dari brankas rahasia Streamlit (Secrets)
@@ -38,7 +38,7 @@ if submit:
     else:
         try:
             # Menggunakan JSON Mode pada Gemini
-            model = genai.GenerativeModel('gemini-flash-latest')
+            model = genai.GenerativeModel('claude-flash-latest')
             
             prompt = f"""
             Buatlah Perencanaan Pembelajaran Mendalam (Deep Learning) PBL dan LKPD.
@@ -85,7 +85,7 @@ if submit:
                     )
                 )
                 
-            # Mengubah teks JSON dari Gemini menjadi Dictionary Python
+            # Mengubah teks dari claude menjadi Dictionary Python
             data = json.loads(response.text)
             st.success("✅ Data berhasil digenerate! Menyusun dokumen Word...")
             
