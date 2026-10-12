@@ -1,5 +1,5 @@
 import streamlit as st
-import anthropic
+import google.generativeai as genai
 import docx
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -10,14 +10,14 @@ from io import BytesIO
 st.set_page_config(page_title="Generator Modul Ajar Deep Learning", page_icon="📚", layout="centered")
 
 st.title("🤖 Web Generator Modul Ajar (Format Pengawas)")
-st.markdown("Versi ini menggunakan **Claude 3.5 Sonnet** dengan format JSON Block untuk meniru 100% struktur dari dokumen pengawas secara rapi dan bebas *error*.")
+st.markdown("Versi ini memadukan **Google Gemini JSON Mode** dengan format Block-Rendering untuk meniru 100% struktur dari dokumen pengawas secara rapi dan bebas *error*.")
 
 # Mengambil API Key dari brankas rahasia Streamlit (Secrets)
 try:
-    api_key = st.secrets["ANTHROPIC_API_KEY"] 
-    client = anthropic.Anthropic(api_key=api_key)
+    api_key = st.secrets["API_KEY"]
+    genai.configure(api_key=api_key)
 except Exception as e:
-    st.error("⚠️ Sistem belum dikonfigurasi. Masukkan ANTHROPIC_API_KEY di pengaturan Secrets Streamlit.")
+    st.error("⚠️ Sistem belum dikonfigurasi. Masukkan API_KEY di pengaturan Secrets Streamlit.")
     st.stop()
 
 with st.form("form_rpp"):
@@ -38,6 +38,8 @@ if submit:
         st.warning("⚠️ Mohon lengkapi Mata Pelajaran, Kelas, dan Topik!")
     else:
         try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            
             prompt = f"""
             Anda adalah Ahli Kurikulum Merdeka. Buatlah Modul Ajar Deep Learning berbasis Problem-Based Learning (PBL).
             Data: Guru: {nama_guru}, Sekolah: {sekolah}, Mapel: {mapel}, Kelas: {kelas}, Topik: {topik}, Waktu: {durasi}.
@@ -78,29 +80,17 @@ if submit:
             Pilihan type yang diizinkan HANYA: "heading1", "heading2", "heading3", "paragraph", "bullet", "number", "table".
             """
             
-            with st.spinner("🤖 Claude sedang merancang Modul standar Pengawas (Anti-Error)..."):
-                response = client.messages.create(
-                    model="claude-3-5-sonnet-20241022",
-                    max_tokens=8192,
-                    temperature=0.3,
-                    system="Anda AI pembuat modul. Jawab HANYA dengan JSON valid. Tanpa pembuka/penutup. Format WAJIB sesuai instruksi.",
-                    messages=[
-                        {"role": "user", "content": prompt}
-                    ]
+            with st.spinner("🤖 Gemini sedang merancang Modul standar Pengawas (Anti-Error)..."):
+                response = model.generate_content(
+                    prompt,
+                    generation_config=genai.GenerationConfig(
+                        response_mime_type="application/json",
+                        temperature=0.4
+                    )
                 )
                 
-            raw_response = response.content[0].text.strip()
-            
-            # Pembersihan pembungkus markdown jika ada
-            if raw_response.startswith("```json"):
-                raw_response = raw_response[7:]
-            if raw_response.startswith("```"):
-                raw_response = raw_response[3:]
-            if raw_response.endswith("```"):
-                raw_response = raw_response[:-3]
-                
-            data = json.loads(raw_response.strip())
-            st.success("✅ Modul berhasil digenerate oleh Claude! Menyusun dokumen Word...")
+            data = json.loads(response.text)
+            st.success("✅ Modul berhasil digenerate! Menyusun dokumen Word...")
             
             # --- MULAI MENYUSUN WORD BERDASARKAN BLOK ---
             doc = docx.Document()
@@ -144,7 +134,7 @@ if submit:
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
             
-        except json.JSONDecodeError as e:
-            st.error("❌ Gagal membaca format data dari Claude. Silakan coba tekan tombol buat lagi.")
+        except json.JSONDecodeError:
+            st.error("❌ Gagal membaca format data dari AI. Silakan coba tekan tombol buat lagi.")
         except Exception as e:
             st.error(f"❌ Terjadi kesalahan sistem: {e}")
