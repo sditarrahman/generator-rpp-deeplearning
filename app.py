@@ -38,7 +38,7 @@ if submit:
         st.warning("⚠️ Mohon lengkapi Mata Pelajaran, Kelas, dan Topik!")
     else:
         try:
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-flash-latest')
             
             prompt = f"""
             Anda adalah Ahli Kurikulum Merdeka. Buatlah Modul Ajar Deep Learning berbasis Problem-Based Learning (PBL).
